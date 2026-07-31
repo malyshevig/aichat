@@ -1,0 +1,4 @@
+streamlit~=1.60.0
+openai~=2.51.0
+sqlalchemy~=2.0.51
+psycopg2-binary~=2.9.12
