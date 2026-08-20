@@ -7,6 +7,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
 from simplechat import temperature
+from streamwrapper import StreamWithUsage
 
 # === НАСТРОЙКА СТРАНИЦЫ ===
 st.set_page_config(page_title="AI Чат", page_icon="🤖")
@@ -182,8 +183,23 @@ if prompt := st.chat_input("Напишите сообщение..."):
             ],
             temperature=temperature,
             stream=True,
+            stream_options={"include_usage": True}
         )
+        stream = StreamWithUsage (stream)
         response = st.write_stream(stream)
+
+    usage = stream.usage
+
+    model = client.models.list().data[0]
+    model_name = model.model_extra['root']
+    max_model_len = model.model_extra["max_model_len"]
+
+
+    st.markdown(f"Model: {model_name}\n max_model_len={max_model_len}")
+    if usage:
+        st.markdown(f"Input tokens: {usage.prompt_tokens}\n Output tokens={usage.completion_tokens} Total tokens = {usage.total_tokens}")
+    else:
+        st.markdown("No tokens info found")
 
     # Сохраняем ответ в session_state
     st.session_state.messages.append({"role": "assistant", "content": response})
